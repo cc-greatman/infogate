@@ -40,7 +40,11 @@
 
                     <div class="team-media">
                         {{-- Add a profile image field later if needed. --}}
+                        @if ($researcherProfile->profile_photo_path)
+                        <img id="photo-preview" src="{{ asset('storage/' . $researcherProfile->profile_photo_path) }}" alt="Current researcher photo" class="img-fluid" style="object-fit: cover;">
+                        @else
                         <img src="{{ asset('assets/images/tm2.jpg') }}" class="img-fluid" alt="{{ $researcherProfile->full_name ?: 'Researcher' }}">
+                        @endif
                     </div>
 
                     <div class="team-head">
@@ -114,7 +118,7 @@
                         @auth
                         @if (auth()->id() === $researcherProfile->user_id)
                         <div class="ts-info mt-4">
-                            <a href="{{ route('profile.edit') }}" class="btn btn-primary w-100">
+                            <a href="{{ route('profile.edit', $researcherProfile->id) }}" class="btn btn-primary w-100">
                                 Edit Profile
                                 <i class="fa fa-arrow-right ms-2"></i>
                             </a>
@@ -133,7 +137,7 @@
                     <h2 class="display-4 mt-0">Biography</h2>
 
                     @if ($researcherProfile->biography)
-                    <p>{{ $researcherProfile->biography }}</p>
+                        {!! $researcherProfile->biography !!}
                     @else
                     <p class="text-muted">
                         This researcher has not added a biography yet.

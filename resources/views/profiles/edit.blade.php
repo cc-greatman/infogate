@@ -62,48 +62,60 @@
 
                     @php
                     $affiliationValues = old(
-                    'affiliations',
-                    $researcherProfile->affiliations->map(fn ($a) => [
-                    'institution' => $a->institution,
-                    'department' => $a->department,
-                    'professional_title' => $a->professional_title,
-                    'country' => $a->country ?? '',
-                    ])->all()
+                        'affiliations',
+                        $researcherProfile->affiliations->map(fn ($a) => [
+                            'institution' => $a->institution,
+                            'department' => $a->department,
+                            'professional_title' => $a->professional_title,
+                            'country' => $a->country ?? '',
+                        ])->all()
                     );
 
                     $interestValues = old(
-                    'research_interests',
-                    $researcherProfile->researchInterests
-                    ->pluck('interest')->all()
+                        'research_interests',
+                        $researcherProfile->researchInterests
+                        ->pluck('interest')->all()
                     );
                     @endphp
 
-                    <form method="POST" action="{{ route('profile.update', $researcherProfile) }}">
+                    <form method="POST" action="{{ route('profile.update', $researcherProfile) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
                         {{-- Basic Information --}}
                         <h3 class="h5 mb-4">Basic Information</h3>
 
+                        {{-- Researcher Photo --}}
                         <div class="form-group mb-4">
-                            <label for="full_name">Full Name</label>
-                            <input class="form-control" type="text" name="full_name" id="full_name" value="{{ old('full_name', $researcherProfile->full_name) }}" maxlength="255">
-                            @error('full_name')
+                            <label for="profile_photo">Profile Photo</label>
+
+                            <div class="mb-3">
+                                @if ($researcherProfile->profile_photo_path)
+                                <img id="photo-preview" src="{{ asset('storage/' . $researcherProfile->profile_photo_path) }}" alt="Current researcher photo" class="rounded-circle border" style="width: 140px; height: 140px; object-fit: cover;">
+                                @else
+                                <img id="photo-preview" src="" alt="Photo preview" class="rounded-circle border d-none" style="width: 140px; height: 140px; object-fit: cover;">
+
+                                <p id="no-photo-message" class="text-muted mb-0">
+                                    No profile photo uploaded yet.
+                                </p>
+                                @endif
+                            </div>
+
+                            <input class="form-control" type="file" name="profile_photo" id="profile_photo" accept="image/jpeg,image/png,image/webp">
+
+                            <small class="text-muted">
+                                JPG, PNG, or WebP. Maximum size: 2 MB. Leave empty to keep your current photo.
+                            </small>
+
+                            @error('profile_photo')
                             <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="country">Country</label>
-                            <select class="form-control" name="country" id="country">
-                                <option value="">Select country</option>
-                                @foreach ($countries as $code => $name)
-                                <option value="{{ $code }}" @selected(old('country', $researcherProfile->country) === $code)>
-                                    {{ $name }}
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('country')
+                            <label for="full_name">Full Name</label>
+                            <input class="form-control" type="text" name="full_name" id="full_name" value="{{ old('full_name', $researcherProfile->full_name) }}" maxlength="255">
+                            @error('full_name')
                             <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -248,6 +260,42 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const photoInput = document.getElementById('profile_photo');
+        const photoPreview = document.getElementById('photo-preview');
+        const noPhotoMessage = document.getElementById('no-photo-message');
+
+        if (!photoInput || !photoPreview) {
+            return;
+        }
+
+        let previewUrl = null;
+
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+
+            previewUrl = URL.createObjectURL(file);
+
+            photoPreview.src = previewUrl;
+            photoPreview.classList.remove('d-none');
+
+            if (noPhotoMessage) {
+                noPhotoMessage.classList.add('d-none');
+            }
+        });
+    });
+
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 

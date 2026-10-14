@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['full_name', 'website_url', 'biography'])]
+#[Fillable(['full_name', 'website_url', 'biography', 'profile_photo_path'])]
 class ResearcherProfile extends Model
 {
 
