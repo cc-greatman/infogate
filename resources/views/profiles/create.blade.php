@@ -77,13 +77,15 @@
 
                         <div class="form-group mb-4">
                             <label for="biography">Biography</label>
+
+                            <div id="biography-editor" class="bg-white"></div>
+
                             <textarea
-                                class="form-control"
                                 name="biography"
                                 id="biography"
-                                rows="5"
-                                placeholder="Describe your academic background and work."
-                            >{{ old('biography') }}</textarea>
+                                class="d-none"
+                            >{{ old('biography', '') }}</textarea>
+
                             @error('biography')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -252,171 +254,219 @@
 </section>
 <!-- Profile Form End -->
 
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const affiliationsContainer = document.getElementById('affiliations-container');
-    const interestsContainer = document.getElementById('interests-container');
+    document.addEventListener('DOMContentLoaded', function() {
+        const biographyInput = document.getElementById('biography');
+        const editorElement = document.getElementById('biography-editor');
 
-    let interestIndex = {{ count(old('research_interests', [''])) }};
-    let affiliationIndex = {{ collect(old('affiliations', [
-        ['institution' => '', 'department' => '', 'professional_title' => '', 'country' => '']
-    ]))->keys()->max() + 1 }};
-
-
-    document.getElementById('add-affiliation').addEventListener('click', () => {
-        const items = document.querySelectorAll('.affiliation-item');
-        const current = items[items.length - 1];
-
-        if (!current) return;
-
-        // Only allow progression when the institution is filled.
-        const institutionInput = current.querySelector(
-            '[name$="[institution]"]'
-        );
-
-        if (!institutionInput || !institutionInput.value.trim())
-        {
-            institutionInput?.focus();
-            alert('Please enter an institution before adding another affiliation.');
+        if (!biographyInput || !editorElement) {
             return;
         }
 
-        // Preserve the current values as hidden form inputs.
-        const fields = [
-            'institution',
-            'department',
-            'professional_title',
-            'country'
-        ];
-
-        const values = {};
-
-        fields.forEach(field => {
-            const input = current.querySelector(`[name$="[${field}]"]`);
-            values[field] = input ? input.value.trim() : '';
+        const quill = new Quill(editorElement, {
+            theme: 'snow'
+            , placeholder: 'Describe your academic background, research, publications, and experience.'
+            , modules: {
+                toolbar: [
+                    [{
+                        header: [2, 3, false]
+                    }]
+                    , ['bold', 'italic', 'underline']
+                    , [{
+                        list: 'ordered'
+                    }, {
+                        list: 'bullet'
+                    }]
+                    , ['link']
+                    , ['clean']
+                ]
+            }
         });
 
-        const index = current.dataset.affiliationIndex;
+        const initialBiography = biographyInput.value.trim();
 
-        // Turn the completed affiliation into a text summary.
-        const summary = document.createElement('div');
-        summary.className = 'affiliation-summary';
+        if (initialBiography) {
+            quill.root.innerHTML = initialBiography;
+        }
 
-        const heading = document.createElement('h4');
-        heading.className = 'h6';
-        heading.textContent = values.institution;
-        summary.appendChild(heading);
+        const form = biographyInput.closest('form');
 
-        const details = document.createElement('p');
-        details.className = 'mb-2 text-muted';
-        details.textContent = [
-            values.professional_title,
-            values.department,
-            values.country
-            ? document.querySelector(
-            `[name="affiliations[${index}][country]"]`
-            )?.selectedOptions[0]?.textContent
-            : ''
-        ].filter(Boolean).join(' · ');
-        summary.appendChild(details);
+        if (form) {
+            form.addEventListener('submit', function() {
+                biographyInput.value = quill.root.innerHTML;
+            });
+        }
+    });
 
-        fields.forEach(field => {
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = `affiliations[${index}][${field}]`;
-        hidden.value = values[field];
-        summary.appendChild(hidden);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const affiliationsContainer = document.getElementById('affiliations-container');
+        const interestsContainer = document.getElementById('interests-container');
+
+        let interestIndex = {{ count(old('research_interests', [''])) }};
+        let affiliationIndex = {{ collect(old('affiliations', [
+            ['institution' => '', 'department' => '', 'professional_title' => '', 'country' => '']
+        ]))->keys()->max() + 1 }};
+
+
+        document.getElementById('add-affiliation').addEventListener('click', () => {
+            const items = document.querySelectorAll('.affiliation-item');
+            const current = items[items.length - 1];
+
+            if (!current) return;
+
+            // Only allow progression when the institution is filled.
+            const institutionInput = current.querySelector(
+                '[name$="[institution]"]'
+            );
+
+            if (!institutionInput || !institutionInput.value.trim())
+            {
+                institutionInput?.focus();
+                alert('Please enter an institution before adding another affiliation.');
+                return;
+            }
+
+            // Preserve the current values as hidden form inputs.
+            const fields = [
+                'institution',
+                'department',
+                'professional_title',
+                'country'
+            ];
+
+            const values = {};
+
+            fields.forEach(field => {
+                const input = current.querySelector(`[name$="[${field}]"]`);
+                values[field] = input ? input.value.trim() : '';
+            });
+
+            const index = current.dataset.affiliationIndex;
+
+            // Turn the completed affiliation into a text summary.
+            const summary = document.createElement('div');
+            summary.className = 'affiliation-summary';
+
+            const heading = document.createElement('h4');
+            heading.className = 'h6';
+            heading.textContent = values.institution;
+            summary.appendChild(heading);
+
+            const details = document.createElement('p');
+            details.className = 'mb-2 text-muted';
+            details.textContent = [
+                values.professional_title,
+                values.department,
+                values.country
+                ? document.querySelector(
+                `[name="affiliations[${index}][country]"]`
+                )?.selectedOptions[0]?.textContent
+                : ''
+            ].filter(Boolean).join(' · ');
+            summary.appendChild(details);
+
+            fields.forEach(field => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = `affiliations[${index}][${field}]`;
+            hidden.value = values[field];
+            summary.appendChild(hidden);
+            });
+
+            current.replaceChildren(summary);
+            current.dataset.locked = 'true';
+
+            const countryOptions = `
+                <option value="">Select country</option>
+                @foreach ($countries as $code => $name)
+                <option value="{{ $code }}">{{ $name }}</option>
+                @endforeach
+            `;
+
+            // Create the next editable affiliation.
+            const next = document.createElement('div');
+            next.className = 'affiliation-item border rounded p-3 mb-3';
+            next.dataset.affiliationIndex = affiliationIndex++;
+
+            next.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="h6 mb-0">New Affiliation</h4>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-affiliation">
+                        Remove
+                    </button>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Institution</label>
+                    <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][institution]" placeholder="University or organization">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Department</label>
+                    <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][department]" placeholder="Department or faculty">
+                </div>
+
+                <div class="form-group">
+                    <label>Professional Title</label>
+                    <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][professional_title]" placeholder="Professor, Researcher, PhD Student...">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Country</label>
+                    <select class="form-control" name="affiliations[${next.dataset.affiliationIndex}][country]">
+                        ${countryOptions}
+                    </select>
+                </div>
+            `;
+
+        document.getElementById('affiliations-container').appendChild(next);
         });
 
-        current.replaceChildren(summary);
-        current.dataset.locked = 'true';
+        document.getElementById('add-interest').addEventListener('click', () => {
+            const item = document.createElement('div');
+            item.className = 'interest-item form-group d-flex align-items-start gap-2 mb-3';
 
-        const countryOptions = `
-            <option value="">Select country</option>
-            @foreach ($countries as $code => $name)
-            <option value="{{ $code }}">{{ $name }}</option>
-            @endforeach
-        `;
+            item.innerHTML = `
+                <div class="flex-grow-1">
+                    <input class="form-control" type="text"
+                        name="research_interests[${interestIndex}]"
+                        placeholder="e.g. 3D Data">
+                </div>
+                <button type="button" class="btn btn-outline-danger remove-interest">Remove</button>
+            `;
 
-        // Create the next editable affiliation.
-        const next = document.createElement('div');
-        next.className = 'affiliation-item border rounded p-3 mb-3';
-        next.dataset.affiliationIndex = affiliationIndex++;
+            interestsContainer.appendChild(item);
+            interestIndex++;
+        });
 
-        next.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="h6 mb-0">New Affiliation</h4>
-                <button type="button" class="btn btn-outline-danger btn-sm remove-affiliation">
-                    Remove
-                </button>
-            </div>
+        affiliationsContainer.addEventListener('click', event => {
+            const button = event.target.closest('.remove-affiliation');
 
-            <div class="form-group mb-3">
-                <label>Institution</label>
-                <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][institution]" placeholder="University or organization">
-            </div>
+            if (!button) return;
 
-            <div class="form-group mb-3">
-                <label>Department</label>
-                <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][department]" placeholder="Department or faculty">
-            </div>
+            const items = affiliationsContainer.querySelectorAll('.affiliation-item');
 
-            <div class="form-group">
-                <label>Professional Title</label>
-                <input class="form-control" type="text" name="affiliations[${next.dataset.affiliationIndex}][professional_title]" placeholder="Professor, Researcher, PhD Student...">
-            </div>
+            if (items.length === 1)
+            {
+                alert('Keep at least one affiliation field.');
+                return;
+            }
 
-            <div class="form-group mb-3">
-                <label>Country</label>
-                <select class="form-control" name="affiliations[${next.dataset.affiliationIndex}][country]">
-                    ${countryOptions}
-                </select>
-            </div>
-        `;
+            button.closest('.affiliation-item').remove();
+        });
 
-    document.getElementById('affiliations-container').appendChild(next);
+
+        interestsContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.remove-interest')) {
+                event.target.closest('.interest-item').remove();
+            }
+        });
     });
-
-    document.getElementById('add-interest').addEventListener('click', () => {
-        const item = document.createElement('div');
-        item.className = 'interest-item form-group d-flex align-items-start gap-2 mb-3';
-
-        item.innerHTML = `
-            <div class="flex-grow-1">
-                <input class="form-control" type="text"
-                       name="research_interests[${interestIndex}]"
-                       placeholder="e.g. 3D Data">
-            </div>
-            <button type="button" class="btn btn-outline-danger remove-interest">Remove</button>
-        `;
-
-        interestsContainer.appendChild(item);
-        interestIndex++;
-    });
-
-    affiliationsContainer.addEventListener('click', event => {
-        const button = event.target.closest('.remove-affiliation');
-
-        if (!button) return;
-
-        const items = affiliationsContainer.querySelectorAll('.affiliation-item');
-
-        if (items.length === 1)
-        {
-            alert('Keep at least one affiliation field.');
-            return;
-        }
-
-        button.closest('.affiliation-item').remove();
-    });
-
-
-    interestsContainer.addEventListener('click', (event) => {
-        if (event.target.closest('.remove-interest')) {
-            event.target.closest('.interest-item').remove();
-        }
-    });
-});
 </script>
 
 @include('auth.partials.footer')

@@ -44,15 +44,25 @@
                       <div class="d-flex align-items-center justify-content-between gap-3">
                          <a href="#" class="icon-lg text-info" data-bs-toggle="offcanvas"
                             data-bs-target="#offcanvas-search"><i class="fa fa-search"></i></a>
-                         <a href="contact.html" class="btn btn-border">Get a quote</a>
-                         <button class="burger-menu icon-lg">
-                            <img src="assets/images/icons/menu-alt-w.svg" alt="c-menu">
-                         </button>
+                        @auth
+                        <form action="{{ route('logout') }}" method="post">
+                            @csrf
+                            <button type="submit" name="submit" class="btn btn-border">Logout</button>
+                        </form>
+                        @endauth
+                        @if (auth()->user())
+                            <form action="{{ route('logout') }}" method="post">
+                                @csrf
+                                <button type="submit" name="submit" class="btn btn-border">Logout</button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-border">Login</a>
+                        @endif
                       </div>
                    </div>
                    <div class="offcanvas offcanvas-start offcanvas-nav">
                       <div class="offcanvas-header">
-                         <a href="index-2.html" class="text-inverse"><img src="assets/images/logo.svg" alt="Logo"></a>
+                         <a href="{{ url('/') }}" class="text-inverse"><img src="assets/images/logo.svg" alt="Logo"></a>
                          <button type="button" class="btn-close bg-primary" data-bs-dismiss="offcanvas"
                             aria-label="Close"></button>
                       </div>
@@ -60,12 +70,10 @@
                       <div class="offcanvas-body pt-0 align-items-center justify-content-between">
                          <ul class="navbar-nav mx-auto align-items-lg-center">
                             <li class="nav-item dropdown">
-                               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                  aria-expanded="false">Home</a>
+                               <a class="nav-link" href="{{ url('/') }}">Home</a>
                             </li>
                             <li class="nav-item dropdown">
-                               <a class="nav-link dropdown-toggle" href="services.html" role="button"
-                                  data-bs-toggle="dropdown" aria-expanded="false">Researchers</a>
+                               <a class="nav-link" href="services.html">Researchers</a>
                             </li>
                             <li class="nav-item">
                                <a class="nav-link" href="contact.html">Contact Us</a>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Researcher;
 
 use App\Http\Controllers\Controller;
+use App\Models\ResearcherProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,40 @@ class ProfileController extends Controller
         }*/
 
         return view('profiles.create', ['page_title' => $page_title, 'user' => $user, 'countries' => $countries]);
+    }
+
+    public function edit(ResearcherProfile $researcherProfile)
+    {
+        abort_unless(Auth::id() === $researcherProfile->user_id, 403);
+
+        $page_title = "Edit your profile - ". env('APP_NAME');
+        $user = $researcherProfile->user();
+
+        $researcherProfile->load([
+            'affiliations',
+            'researchInterests'
+        ]);
+
+        $countries = \Symfony\Component\Intl\Countries::getNames('en');
+        asort($countries);
+
+        return view('profiles.edit', ['countries' => $countries, 'page_title' => $page_title,
+                                     'user' => $user, 'researcherProfile' => $researcherProfile]);
+    }
+
+    public function show(ResearcherProfile $researcherProfile)
+    {
+        $user = $researcherProfile->user;
+        $page_title = $user->name. "\'s Profile - ". env('APP_NAME');
+        $researcher = $researcherProfile->load(
+            [
+                'user',
+                'affiliations',
+                'researchInterests'
+            ]
+        );
+
+        return view('profiles.show', ['researcherProfile' => $researcher, 'page_title' => $page_title, 'user' => $user]);
     }
 
     public function store(Request $request)
