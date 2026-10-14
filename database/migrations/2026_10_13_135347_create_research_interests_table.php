@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('research_interests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('researcher_profile_id')
-                  ->unique()
                   ->constrained()
                   ->cascadeOnDelete();
             $table->string('interest');

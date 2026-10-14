@@ -14,12 +14,11 @@ return new class extends Migration
         Schema::create('affiliations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('researcher_profile_id')
-                  ->unique()
                   ->constrained()
                   ->cascadeOnDelete();
             $table->string('institution');
             $table->string('department')->nullable();
-            $table->string('country');
+            $table->string('country', 2)->nullable();
             $table->string('professional_title')->nullable();
             $table->timestamps();
         });

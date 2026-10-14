@@ -19,7 +19,7 @@ return new class extends Migration
                   ->cascadeOnDelete();
             $table->string('full_name')->nullable();
             $table->longText('biography')->nullable();
-            $table->string('website_url');
+            $table->string('website_url')->nullable();
             $table->timestamps();
         });
     }
