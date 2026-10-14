@@ -17,16 +17,14 @@
                         <a href="index-2.html"><img src="assets/images/logo-w.svg" alt="Logo"></a>
                     </div>
 
-                    <p>Join our community! Get exclusive news, tips and offers delivered to your inbox. Here are some
-                        engaging text ideas for a subscribe</p>
+                    <p>Join our community! Get exclusive news, and tips delivered to your inbox.</p>
                 </div>
             </div>
             <div class="col-lg-6 col-md-12">
                 <div class="footer-widget quick-links">
                     <h3 class="widget-title">Quick Links</h3>
                     <ul>
-                        <li><a href="#">Researchers</a></li>
-                        <li><a href="#">Contact us</a></li>
+                        <li><a href="{{ route('profiles.index') }}">Researchers</a></li>
                     </ul>
                 </div>
             </div>
@@ -38,10 +36,6 @@
                 <p class="copy-right mb-0 order-2 order-md-1">
                     Copyright &copy;@php echo date('Y') @endphp <a href="#">{{ env('APP_NAME') }}</a> All Rights Reserved.</p>
                 <nav class="footer-nav order-1 order-md-2">
-                    <ul>
-                        <li><a href="#">Privacy Policy </a></li>
-                        <li><a href="#">Terms & Condition</a></li>
-                    </ul>
                 </nav>
             </div>
         </div>

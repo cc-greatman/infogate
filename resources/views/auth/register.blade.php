@@ -32,10 +32,6 @@
         <div class="row">
             <div class="col-lg-7 mx-auto">
                 <div class="contact-form2 bg-shade round p-4 p-lg-5">
-                    <div class="col-12 d-flex justify-content-center align-items-center mb-4">
-                        <a href="#" class="btn btn-dark text-info w-100 text-center"><i class="fa-brands fa-google" style="margin-right: 15px;"></i> Login with Google</a>
-                     </div>
-                     <h5 class="h2 text-center mb-5">OR</h5>
                     <h2 class="h3 text-center mb-5"> Create your Account</h2>
                     <form role="form" method="POST" action="{{ route('register.store') }}">
                         @csrf

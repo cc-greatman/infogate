@@ -50,6 +50,114 @@ class ProfileController extends Controller
                                      'user' => $user, 'researcherProfile' => $researcherProfile]);
     }
 
+
+    public function index(Request $request)
+    {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'size:2'],
+            'institution' => ['nullable', 'string', 'max:255'],
+            'interest' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $search = trim($filters['q'] ?? '');
+        $country = $filters['country'] ?? '';
+        $institution = $filters['institution'] ?? '';
+        $interest = $filters['interest'] ?? '';
+
+        $query = ResearcherProfile::query()
+            ->with(['user', 'affiliations', 'researchInterests']);
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $term = '%' . $search . '%';
+
+                $query->where('full_name', 'like', $term)
+                    ->orWhere('biography', 'like', $term)
+                    ->orWhereHas('affiliations', function ($q) use ($term) {
+                        $q->where('institution', 'like', $term)
+                            ->orWhere('department', 'like', $term)
+                            ->orWhere('professional_title', 'like', $term);
+                    })
+                    ->orWhereHas('researchInterests', function ($q) use ($term) {
+                        $q->where('interest', 'like', $term);
+                    });
+            });
+        }
+        if ($country !== '') {
+            $query->where(function ($query) use ($country) {
+                $query->where('country', $country)
+                    ->orWhereHas('affiliations', function ($q) use ($country) {
+                        $q->where('country', $country);
+                    });
+            });
+        }
+
+        if ($institution !== '') {
+            $query->whereHas('affiliations', function ($q) use ($institution) {
+                $q->where('institution', $institution);
+            });
+        }
+
+        if ($interest !== '') {
+            $query->whereHas('researchInterests', function ($q) use ($interest) {
+                $q->where('interest', $interest);
+            });
+        }
+
+        $profiles = $query
+            ->orderBy('full_name')
+            ->paginate(12)
+            ->withQueryString();
+
+        $countryCodes = DB::table('affiliations')
+            ->whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->pluck('country')
+            ->merge(
+                DB::table('affiliations')
+                    ->whereNotNull('country')
+                    ->where('country', '!=', '')
+                    ->distinct()
+                    ->pluck('country')
+            )
+            ->unique()
+            ->values();
+
+        $countryNames = \Symfony\Component\Intl\Countries::getNames('en');
+
+        $countries = $countryCodes
+            ->mapWithKeys(fn ($code) => [
+                $code => $countryNames[$code] ?? $code,
+            ])
+            ->all();
+
+        asort($countries);
+
+        $institutions = DB::table('affiliations')
+            ->whereNotNull('institution')
+            ->where('institution', '!=', '')
+            ->distinct()
+            ->orderBy('institution')
+            ->pluck('institution');
+
+        $interests = DB::table('research_interests')
+            ->whereNotNull('interest')
+            ->where('interest', '!=', '')
+            ->distinct()
+            ->orderBy('interest')
+            ->pluck('interest');
+
+        $page_title = 'Researcher Directory - ' . config('app.name');
+
+        return view('profiles.index', ['profiles' => $profiles, 'countries' => $countries,
+                                      'institutions' => $institutions, 'interests' => $interests,
+                                      'search' => $search, 'country' => $country,
+                                      'institution' => $institution, 'interest' => $interest,
+                                      'page_title' => $page_title]);
+    }
+
     public function show(ResearcherProfile $researcherProfile)
     {
         $user = $researcherProfile->user;

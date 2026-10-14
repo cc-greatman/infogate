@@ -39,11 +39,6 @@
                   <p>Please log to access your account.</p>
                </div>
                <div class="account-form bg-shade round">
-                  <div class="col-12 d-flex justify-content-center align-items-center mb-4">
-                     <a href="#" class="btn btn-dark text-info w-100 text-center"><i class="fa-brands fa-google" style="margin-right: 15px;"></i> Login with Google</a>
-
-                  </div>
-                  <h5 class="h2 text-center mb-5">OR</h5>
                   <form method="post" action="{{ route('login.store') }}">
                     @csrf
                      <div class="form-group mb-3">
